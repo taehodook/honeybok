@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="theme-color" content="#FFF6E0" />
+<title>꿀복이 성장 일기 🍯</title>
+<meta property="og:title" content="꿀복이 성장 일기" />
+<meta property="og:description" content="우리 가족의 소중한 성장 기록" />
+<meta property="og:type" content="website" />
+
+<!-- Google Fonts: Gowun Dodum (한글 부드러운 손글씨 느낌) + Caveat (영문 손글씨) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Caveat:wght@500;700&family=Nanum+Pen+Script&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK (compat 버전) - 안정 버전 -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js" crossorigin="anonymous"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js" crossorigin="anonymous"></script>
+
+<style>
+  /* ===== 디자인 토큰 ===== */
+  :root {
+    --honey: #F5B82E;          /* 메인 꿀색 */
+    --honey-deep: #E89B3C;     /* 진한 꿀색 */
+    --honey-light: #FFE4A0;    /* 연한 꿀색 */
+    --butter: #FFF8DC;         /* 버터 크림 */
+    --cream: #FFF6E0;          /* 배경 크림 */
+    --cream-warm: #FFEED1;     /* 따뜻한 크림 */
+    --pink-soft: #FFD6E0;      /* 베이비 핑크 */
+    --pink-deep: #FFADC0;      /* 진한 핑크 */
+    --brown: #5D4037;          /* 다크 브라운 (글자) */
+    --brown-soft: #8B6F5C;     /* 부드러운 브라운 */
+    --gray-soft: #B5A89A;      /* 회갈색 */
+    --white: #FFFFFF;
+    --shadow: 0 4px 20px rgba(245, 184, 46, 0.15);
+    --shadow-deep: 0 8px 30px rgba(229, 155, 60, 0.2);
+
+    --font-body: 'Gowun Dodum', -apple-system, sans-serif;
+    --font-display: 'Nanum Pen Script', 'Gowun Dodum', cursive;
+    --font-en: 'Caveat', cursive;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    font-family: var(--font-body);
+    background: var(--cream);
+    color: var(--brown);
+    line-height: 1.6;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* 배경 패턴 — 동그라미 점박이 */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      radial-gradient(circle at 20% 15%, var(--honey-light) 0, transparent 4px),
+      radial-gradient(circle at 80% 30%, var(--pink-soft) 0, transparent 5px),
+      radial-gradient(circle at 50% 60%, var(--honey-light) 0, transparent 4px),
+      radial-gradient(circle at 15% 80%, var(--pink-soft) 0, transparent 4px),
+      radial-gradient(circle at 90% 90%, var(--honey-light) 0, transparent 5px);
+    background-size: 400px 400px;
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding-bottom: 90px;
+  }
+
+  /* ===== 화면 전환 ===== */
+  .screen { display: none; animation: fadeIn 0.4s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== 시작 화면 (그룹 코드 입력/생성) ===== */
+  #start-screen {
+    min-height: 100vh;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 24px;
+  }
+  #start-screen.active { display: flex; }
+
+  .logo-circle {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--honey) 0%, var(--honey-deep) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 12px 40px rgba(229, 155, 60, 0.35);
+    margin-bottom: 24px;
+    animation: float 3s ease-in-out infinite;
+    position: relative;
+  }
+  .logo-circle::after {
+    content: '';
+    position: absolute;
+    bottom: -12px; left: 50%;
+    transform: translateX(-50%);
+    width: 80%;
+    height: 16px;
+    background: rgba(229, 155, 60, 0.2);
+    border-radius: 50%;
+    filter: blur(8px);
+    z-index: -1;
+  }
+  .logo-emoji { font-size: 80px; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .app-title {
+    font-family: var(--font-display);
+    font-size: 52px;
+    color: var(--brown);
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+  .app-subtitle {
+    font-family: var(--font-en);
+    font-size: 22px;
+    color: var(--brown-soft);
+    margin-bottom: 40px;
+  }
+
+  .start-card {
+    width: 100%;
+    background: var(--white);
+    border-radius: 28px;
+    padding: 28px 24px;
+    box-shadow: var(--shadow);
+    margin-bottom: 16px;
+    border: 2px solid var(--honey-light);
+  }
+  .start-card h3 {
+    font-family: var(--font-display);
+    font-size: 32px;
+    color: var(--honey-deep);
+    margin-bottom: 8px;
+  }
+  .start-card p {
+    color: var(--brown-soft);
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+  .start-card input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid var(--cream-warm);
+    border-radius: 16px;
+    font-size: 16px;
+    font-family: var(--font-body);
+    background: var(--butter);
+    color: var(--brown);
+    margin-bottom: 12px;
+    text-align: center;
+    letter-spacing: 4px;
+    font-weight: 700;
+  }
+  .start-card input:focus {
+    outline: none;
+    border-color: var(--honey);
+    background: var(--white);
+  }
+  .start-card input::placeholder {
+    letter-spacing: normal;
+    font-weight: normal;
+    color: var(--gray-soft);
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--honey) 0%, var(--honey-deep) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: 16px;
+    font-size: 17px;
+    font-weight: 700;
+    font-family: var(--font-body);
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(229, 155, 60, 0.3);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .btn-primary:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 8px rgba(229, 155, 60, 0.3);
+  }
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    width: 100%;
+    padding: 14px;
+    background: var(--white);
+    color: var(--brown);
+    border: 2px solid var(--honey-light);
+    border-radius: 16px;
+    font-size: 15px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 20px 0;
+    color: var(--gray-soft);
+    font-size: 13px;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--cream-warm);
+  }
+
+  /* ===== 첫 설정 화면 (아기 정보 입력) ===== */
+  .setup-form { padding: 0 4px; }
+  .setup-form .field {
+    margin-bottom: 18px;
+  }
+  .setup-form label {
+    display: block;
+    font-size: 14px;
+    color: var(--brown-soft);
+    margin-bottom: 6px;
+    font-weight: 700;
+  }
+  .setup-form input[type="text"],
+  .setup-form input[type="date"] {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid var(--cream-warm);
+    border-radius: 16px;
+    font-size: 16px;
+    font-family: var(--font-body);
+    background: var(--butter);
+    color: var(--brown);
+    text-align: left;
+    letter-spacing: normal;
+    font-weight: normal;
+  }
+  .setup-form input:focus {
+    outline: none;
+    border-color: var(--honey);
+    background: var(--white);
+  }
+
+  /* ===== 메인 화면 ===== */
+  .main-header {
+    background: linear-gradient(180deg, var(--cream) 0%, var(--cream) 80%, transparent 100%);
+    padding: 20px 20px 8px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .main-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .greeting {
+    font-family: var(--font-display);
+    font-size: 28px;
+    color: var(--brown);
+    letter-spacing: -0.3px;
+  }
+  .greeting-sub {
+    font-size: 12px;
+    color: var(--brown-soft);
+  }
+  .header-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    border: 2px solid var(--honey-light);
+  }
+
+  /* ===== 홈 카드 — 꿀복이 D+ 카운터 ===== */
+  .hero-card {
+    margin: 16px 16px 24px;
+    background: linear-gradient(135deg, #FFE4A0 0%, #FFD080 50%, #FFB8C9 100%);
+    border-radius: 32px;
+    padding: 32px 24px;
+    text-align: center;
+    box-shadow: var(--shadow-deep);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-card::before {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 150px; height: 150px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+  }
+  .hero-card::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: -40px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+  }
+
+  .hero-baby-circle {
+    position: relative;
+    z-index: 1;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 56px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    border: 4px solid var(--white);
+  }
+  .hero-name {
+    position: relative; z-index: 1;
+    font-family: var(--font-display);
+    font-size: 36px;
+    color: var(--brown);
+    margin-bottom: 4px;
+  }
+  .hero-day {
+    position: relative; z-index: 1;
+    font-family: var(--font-en);
+    font-size: 64px;
+    font-weight: 700;
+    color: var(--honey-deep);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .hero-detail {
+    position: relative; z-index: 1;
+    font-size: 14px;
+    color: var(--brown);
+    opacity: 0.8;
+  }
+
+  /* ===== 가족 멤버 표시 ===== */
+  .members-section {
+    margin: 0 16px 24px;
+    background: var(--white);
+    border-radius: 24px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    border: 1.5px solid var(--cream-warm);
+  }
+  .members-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--brown);
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .group-code-badge {
+    background: var(--cream-warm);
+    color: var(--honey-deep);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--font-body);
+    letter-spacing: 1px;
+  }
+
+  .members-list {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .member-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--butter);
+    border-radius: 16px;
+    font-size: 14px;
+    color: var(--brown);
+  }
+  .member-emoji { font-size: 18px; }
+  .me-badge {
+    font-size: 10px;
+    background: var(--honey);
+    color: var(--white);
+    padding: 2px 6px;
+    border-radius: 6px;
+    margin-left: 4px;
+  }
+
+  /* ===== 빈 상태 (Phase 2 예고) ===== */
+  .coming-soon {
+    margin: 0 16px;
+    background: var(--white);
+    border-radius: 24px;
+    padding: 32px 20px;
+    text-align: center;
+    border: 2px dashed var(--honey-light);
+  }
+  .coming-soon-emoji {
+    font-size: 48px;
+    margin-bottom: 12px;
+  }
+  .coming-soon h4 {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--brown);
+    margin-bottom: 8px;
+  }
+  .coming-soon p {
+    font-size: 14px;
+    color: var(--brown-soft);
+  }
+
+  /* ===== 하단 탭 네비게이션 ===== */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: var(--white);
+    border-top: 2px solid var(--cream-warm);
+    display: flex;
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    box-shadow: 0 -4px 20px rgba(229, 155, 60, 0.08);
+    z-index: 50;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 0;
+    color: var(--gray-soft);
+    cursor: pointer;
+    font-size: 11px;
+    transition: color 0.2s;
+  }
+  .nav-item.active {
+    color: var(--honey-deep);
+  }
+  .nav-item.active .nav-emoji {
+    transform: scale(1.15);
+  }
+  .nav-emoji {
+    font-size: 22px;
+    transition: transform 0.2s;
+    filter: grayscale(0.3);
+  }
+  .nav-item.active .nav-emoji {
+    filter: grayscale(0);
+  }
+  .nav-item.disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ===== 토스트 ===== */
+  .toast {
+    position: fixed;
+    bottom: 110px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--brown);
+    color: var(--white);
+    padding: 12px 24px;
+    border-radius: 20px;
+    font-size: 14px;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.3s, transform 0.3s;
+    pointer-events: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-10px);
+  }
+
+  /* ===== 모달 ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(93, 64, 55, 0.5);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--white);
+    width: 100%;
+    max-width: 480px;
+    border-radius: 28px 28px 0 0;
+    padding: 24px;
+    max-height: 85vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .modal-title {
+    font-family: var(--font-display);
+    font-size: 26px;
+    color: var(--brown);
+  }
+  .modal-close {
+    width: 36px; height: 36px;
+    border: none;
+    background: var(--cream-warm);
+    border-radius: 50%;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--brown);
+  }
+
+  /* 큰 그룹 코드 표시 */
+  .big-code {
+    font-family: var(--font-en);
+    font-size: 56px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--honey-deep);
+    letter-spacing: 8px;
+    background: var(--cream-warm);
+    padding: 24px;
+    border-radius: 20px;
+    margin: 12px 0;
+    border: 2px dashed var(--honey-light);
+  }
+  .copy-hint {
+    text-align: center;
+    color: var(--brown-soft);
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+
+  /* ===== 로딩 ===== */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid var(--cream-warm);
+    border-top-color: var(--honey);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== 닉네임 선택 ===== */
+  .role-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .role-card {
+    padding: 20px 12px;
+    background: var(--butter);
+    border: 2px solid transparent;
+    border-radius: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .role-card:active {
+    transform: scale(0.96);
+  }
+  .role-card.selected {
+    background: var(--cream-warm);
+    border-color: var(--honey);
+  }
+  .role-emoji {
+    font-size: 40px;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .role-name {
+    font-size: 15px;
+    color: var(--brown);
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- 로딩 화면 -->
+  <div id="loading-screen" class="loading">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- 시작 화면 -->
+  <div id="start-screen" class="screen">
+    <div class="logo-circle">
+      <span class="logo-emoji">🍯</span>
+    </div>
+    <h1 class="app-title">꿀복이 성장 일기</h1>
+    <p class="app-subtitle">Honey Bok's Growth Diary</p>
+
+    <!-- 모드 선택 (코드 만들기 / 코드 입력) -->
+    <div id="mode-select" class="start-card">
+      <h3>처음 오셨어요?</h3>
+      <p>아기 정보를 입력하고 우리 가족만의 코드를 만들어요</p>
+      <button class="btn-primary" onclick="showCreateForm()">새로 시작하기</button>
+      <div class="divider">또는</div>
+      <button class="btn-secondary" onclick="showJoinForm()">가족 코드로 입장</button>
+    </div>
+
+    <!-- 새로 만들기 폼 -->
+    <div id="create-form" class="start-card" style="display:none;">
+      <h3>아기 정보 입력</h3>
+      <p>꿀복이의 정보를 알려주세요</p>
+      <div class="setup-form">
+        <div class="field">
+          <label>아기 이름 (또는 태명)</label>
+          <input type="text" id="baby-name" placeholder="예: 꿀복이" maxlength="10" />
+        </div>
+        <div class="field">
+          <label>출생일 (예정일도 OK)</label>
+          <input type="date" id="baby-birth" />
+        </div>
+      </div>
+      <button class="btn-primary" onclick="createGroup()">코드 만들기 ✨</button>
+      <button class="btn-secondary" onclick="backToMode()">← 돌아가기</button>
+    </div>
+
+    <!-- 코드 입력 폼 -->
+    <div id="join-form" class="start-card" style="display:none;">
+      <h3>가족 코드 입력</h3>
+      <p>가족이 알려준 6자리 코드를 입력해 주세요</p>
+      <input type="text" id="join-code" placeholder="ABCD12" maxlength="6" autocapitalize="characters" />
+      <button class="btn-primary" onclick="joinGroup()">입장하기</button>
+      <button class="btn-secondary" onclick="backToMode()">← 돌아가기</button>
+    </div>
+
+    <!-- 닉네임 선택 -->
+    <div id="role-form" class="start-card" style="display:none;">
+      <h3>누구신가요?</h3>
+      <p>꿀복이에게 어떤 사람인지 알려주세요</p>
+      <div class="role-grid">
+        <div class="role-card" data-role="엄마" onclick="selectRole(this)">
+          <span class="role-emoji">👩</span>
+          <div class="role-name">엄마</div>
+        </div>
+        <div class="role-card" data-role="아빠" onclick="selectRole(this)">
+          <span class="role-emoji">👨</span>
+          <div class="role-name">아빠</div>
+        </div>
+        <div class="role-card" data-role="할머니" onclick="selectRole(this)">
+          <span class="role-emoji">👵</span>
+          <div class="role-name">할머니</div>
+        </div>
+        <div class="role-card" data-role="할아버지" onclick="selectRole(this)">
+          <span class="role-emoji">👴</span>
+          <div class="role-name">할아버지</div>
+        </div>
+        <div class="role-card" data-role="이모" onclick="selectRole(this)">
+          <span class="role-emoji">💁‍♀️</span>
+          <div class="role-name">이모</div>
+        </div>
+        <div class="role-card" data-role="삼촌" onclick="selectRole(this)">
+          <span class="role-emoji">💁‍♂️</span>
+          <div class="role-name">삼촌</div>
+        </div>
+      </div>
+      <button class="btn-primary" id="role-confirm-btn" style="margin-top: 16px;" onclick="confirmRole()" disabled>시작하기 🍯</button>
+    </div>
+  </div>
+
+  <!-- 메인 화면 -->
+  <div id="main-screen" class="screen">
+    <div class="main-header">
+      <div class="main-header-row">
+        <div>
+          <div class="greeting" id="greeting-text">안녕하세요</div>
+          <div class="greeting-sub" id="greeting-sub"></div>
+        </div>
+        <div class="header-icon" onclick="openSettings()">⚙️</div>
+      </div>
+    </div>
+
+    <!-- 꿀복이 카운터 카드 -->
+    <div class="hero-card">
+      <div class="hero-baby-circle">🍯</div>
+      <div class="hero-name" id="hero-name">꿀복이</div>
+      <div class="hero-day" id="hero-day">D-?</div>
+      <div class="hero-detail" id="hero-detail">출생일 정보를 불러오는 중...</div>
+    </div>
+
+    <!-- 가족 멤버 -->
+    <div class="members-section">
+      <div class="members-title">
+        <span>우리 가족 💛</span>
+        <span class="group-code-badge" id="group-code-display" onclick="showInviteModal()">코드 ABCD12</span>
+      </div>
+      <div class="members-list" id="members-list"></div>
+    </div>
+
+    <!-- Phase 2 예고 -->
+    <div class="coming-soon">
+      <div class="coming-soon-emoji">📸</div>
+      <h4>추억 기록 탭</h4>
+      <p>곧 사진과 영상을 올릴 수 있어요</p>
+    </div>
+  </div>
+
+  <!-- 하단 네비게이션 -->
+  <div class="bottom-nav" id="bottom-nav" style="display:none;">
+    <div class="nav-item active" data-tab="home">
+      <div class="nav-emoji">🏠</div>
+      <div>홈</div>
+    </div>
+    <div class="nav-item disabled" data-tab="memory">
+      <div class="nav-emoji">📸</div>
+      <div>추억</div>
+    </div>
+    <div class="nav-item disabled" data-tab="growth">
+      <div class="nav-emoji">📈</div>
+      <div>성장</div>
+    </div>
+    <div class="nav-item disabled" data-tab="album">
+      <div class="nav-emoji">📖</div>
+      <div>앨범</div>
+    </div>
+  </div>
+</div>
+
+<!-- 초대 모달 -->
+<div class="modal-overlay" id="invite-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">가족 초대 💌</div>
+      <button class="modal-close" onclick="closeInviteModal()">✕</button>
+    </div>
+    <p style="color: var(--brown-soft); font-size: 14px; margin-bottom: 8px;">
+      이 코드를 가족에게 알려주세요<br>
+      가족이 같은 화면을 함께 볼 수 있어요
+    </p>
+    <div class="big-code" id="modal-big-code">ABCD12</div>
+    <p class="copy-hint" id="copy-hint">코드를 눌러서 복사하세요</p>
+    <button class="btn-primary" onclick="copyCode()">코드 복사하기</button>
+    <button class="btn-secondary" onclick="shareKakao()">카카오톡으로 공유</button>
+  </div>
+</div>
+
+<!-- 설정 모달 -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">설정 ⚙️</div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div style="padding: 8px 0;">
+      <div style="padding: 14px 0; border-bottom: 1px solid var(--cream-warm); display: flex; justify-content: space-between;">
+        <span>내 닉네임</span>
+        <strong id="my-nickname-display" style="color: var(--honey-deep);">-</strong>
+      </div>
+      <div style="padding: 14px 0; border-bottom: 1px solid var(--cream-warm); display: flex; justify-content: space-between;">
+        <span>아기 이름</span>
+        <strong id="baby-name-display" style="color: var(--honey-deep);">-</strong>
+      </div>
+      <div style="padding: 14px 0; border-bottom: 1px solid var(--cream-warm); display: flex; justify-content: space-between;">
+        <span>출생일</span>
+        <strong id="baby-birth-display" style="color: var(--honey-deep);">-</strong>
+      </div>
+      <div style="padding: 14px 0; display: flex; justify-content: space-between; cursor: pointer;" onclick="logout()">
+        <span style="color: #c45454;">다른 가족으로 전환</span>
+        <span>›</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast">메시지</div>
+
+<script>
+// ============================================================
+// Firebase 초기화 (로딩 실패 처리 포함)
+// ============================================================
+const firebaseConfig = {
+  apiKey: "AIzaSyA6D4gwJh2eDf4EFoQYa8B7xXiQOxCTjns",
+  authDomain: "honeybok-e4161.firebaseapp.com",
+  databaseURL: "https://honeybok-e4161-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "honeybok-e4161",
+  storageBucket: "honeybok-e4161.firebasestorage.app",
+  messagingSenderId: "27881321874",
+  appId: "1:27881321874:web:b9717c4c86029014ac3d4b"
+};
+
+// Firebase SDK 로딩 확인
+if (typeof firebase === 'undefined') {
+  document.body.innerHTML = `
+    <div style="max-width:480px;margin:60px auto;padding:32px 24px;font-family:'Gowun Dodum',sans-serif;text-align:center;background:#FFF6E0;min-height:100vh;">
+      <div style="font-size:64px;margin-bottom:16px;">🍯</div>
+      <h2 style="color:#5D4037;font-family:'Nanum Pen Script',cursive;font-size:32px;margin-bottom:16px;">앗, 인터넷 연결이 필요해요</h2>
+      <p style="color:#8B6F5C;line-height:1.7;margin-bottom:20px;">
+        Firebase가 로드되지 않았어요.<br>
+        다음 중 하나일 수 있어요:
+      </p>
+      <div style="background:white;border-radius:16px;padding:20px;text-align:left;color:#5D4037;line-height:1.8;border:2px solid #FFE4A0;">
+        <strong>① 로컬 파일 (file://)에서 열었어요?</strong><br>
+        <span style="color:#8B6F5C;font-size:14px;">→ GitHub Pages나 Vercel에 배포 후 사용해주세요</span><br><br>
+        <strong>② 인터넷이 끊겼나요?</strong><br>
+        <span style="color:#8B6F5C;font-size:14px;">→ Wi-Fi 또는 모바일 데이터 확인해주세요</span><br><br>
+        <strong>③ 광고 차단 프로그램이 있나요?</strong><br>
+        <span style="color:#8B6F5C;font-size:14px;">→ 잠시 비활성화 후 새로고침해주세요</span>
+      </div>
+      <button onclick="location.reload()" style="margin-top:24px;padding:14px 32px;background:linear-gradient(135deg,#F5B82E,#E89B3C);color:white;border:none;border-radius:16px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Gowun Dodum',sans-serif;">
+        다시 시도하기 🔄
+      </button>
+    </div>
+  `;
+  throw new Error('Firebase SDK not loaded');
+}
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ============================================================
+// 전역 상태
+// ============================================================
+let currentGroup = null;        // 현재 그룹 코드
+let currentUid = null;          // 내 사용자 ID (랜덤 생성)
+let currentRole = null;         // 내 역할 (엄마/아빠/할머니 등)
+let groupData = null;           // 그룹 전체 데이터
+let groupListener = null;       // Firebase 리스너
+let pendingGroupCode = null;    // 입장 시 임시 보관
+
+// ============================================================
+// localStorage 키
+// ============================================================
+const LS_KEYS = {
+  GROUP: 'honeybok_group',
+  UID: 'honeybok_uid',
+  ROLE: 'honeybok_role'
+};
+
+// ============================================================
+// 유틸 함수
+// ============================================================
+function generateGroupCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // 헷갈리는 0/O/1/I 제외
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
+
+function generateUid() {
+  return 'u_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+}
+
+function showToast(msg, duration = 2000) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), duration);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById(id).classList.add('active');
+}
+
+function calcDays(birthDateStr) {
+  if (!birthDateStr) return null;
+  const birth = new Date(birthDateStr);
+  const now = new Date();
+  // 같은 날 = D-day, 시간 무시
+  birth.setHours(0,0,0,0);
+  now.setHours(0,0,0,0);
+  const diff = Math.floor((now - birth) / (1000 * 60 * 60 * 24));
+  return diff;
+}
+
+function formatDays(days) {
+  if (days === null) return '';
+  if (days < 0) return `D${days}`;       // 출생 전: D-XX
+  if (days === 0) return 'D-DAY';
+  return `D+${days}`;
+}
+
+function formatBirthInfo(birthDateStr, days) {
+  if (!birthDateStr) return '출생일 정보 없음';
+  const birth = new Date(birthDateStr);
+  const dateStr = `${birth.getFullYear()}년 ${birth.getMonth()+1}월 ${birth.getDate()}일`;
+  if (days === null) return dateStr;
+  if (days < 0) return `${dateStr} 출산 예정 · ${-days}일 남음`;
+  if (days === 0) return `오늘이 생일이에요! 🎂`;
+  if (days < 30) return `${dateStr}생 · 생후 ${days}일`;
+  if (days < 365) return `${dateStr}생 · 생후 ${days}일`;
+  const years = Math.floor(days / 365);
+  const remDays = days - years * 365;
+  return `${dateStr}생 · ${years}살 ${remDays}일`;
+}
+
+// ============================================================
+// 시작 화면 라우팅
+// ============================================================
+function showCreateForm() {
+  document.getElementById('mode-select').style.display = 'none';
+  document.getElementById('create-form').style.display = 'block';
+  document.getElementById('baby-name').focus();
+}
+function showJoinForm() {
+  document.getElementById('mode-select').style.display = 'none';
+  document.getElementById('join-form').style.display = 'block';
+  const input = document.getElementById('join-code');
+  input.focus();
+  input.addEventListener('input', e => {
+    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  });
+}
+function backToMode() {
+  document.getElementById('mode-select').style.display = 'block';
+  document.getElementById('create-form').style.display = 'none';
+  document.getElementById('join-form').style.display = 'none';
+  document.getElementById('role-form').style.display = 'none';
+}
+function showRoleForm() {
+  document.getElementById('mode-select').style.display = 'none';
+  document.getElementById('create-form').style.display = 'none';
+  document.getElementById('join-form').style.display = 'none';
+  document.getElementById('role-form').style.display = 'block';
+}
+
+// ============================================================
+// 그룹 생성
+// ============================================================
+async function createGroup() {
+  const name = document.getElementById('baby-name').value.trim();
+  const birth = document.getElementById('baby-birth').value;
+
+  if (!name) { showToast('아기 이름을 입력해주세요'); return; }
+  if (!birth) { showToast('출생일을 선택해주세요'); return; }
+
+  // 유니크 코드 생성 (충돌 방지)
+  let code, exists = true, attempts = 0;
+  while (exists && attempts < 10) {
+    code = generateGroupCode();
+    const snap = await db.ref(`groups/${code}/meta`).once('value');
+    exists = snap.exists();
+    attempts++;
+  }
+
+  if (exists) {
+    showToast('코드 생성 실패, 다시 시도해주세요');
+    return;
+  }
+
+  // 그룹 데이터 저장
+  await db.ref(`groups/${code}/meta`).set({
+    babyName: name,
+    birthDate: birth,
+    createdAt: Date.now()
+  });
+
+  pendingGroupCode = code;
+  showRoleForm();
+}
+
+// ============================================================
+// 그룹 입장
+// ============================================================
+async function joinGroup() {
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  if (code.length !== 6) { showToast('6자리 코드를 입력해주세요'); return; }
+
+  const snap = await db.ref(`groups/${code}/meta`).once('value');
+  if (!snap.exists()) {
+    showToast('잘못된 코드예요. 다시 확인해주세요');
+    return;
+  }
+
+  pendingGroupCode = code;
+  showRoleForm();
+}
+
+// ============================================================
+// 닉네임 선택
+// ============================================================
+function selectRole(el) {
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  currentRole = el.dataset.role;
+  document.getElementById('role-confirm-btn').disabled = false;
+}
+
+async function confirmRole() {
+  if (!currentRole || !pendingGroupCode) return;
+
+  const uid = generateUid();
+  await db.ref(`groups/${pendingGroupCode}/members/${uid}`).set({
+    role: currentRole,
+    joinedAt: Date.now()
+  });
+
+  // localStorage 저장
+  localStorage.setItem(LS_KEYS.GROUP, pendingGroupCode);
+  localStorage.setItem(LS_KEYS.UID, uid);
+  localStorage.setItem(LS_KEYS.ROLE, currentRole);
+
+  currentGroup = pendingGroupCode;
+  currentUid = uid;
+  pendingGroupCode = null;
+
+  enterMain();
+}
+
+// ============================================================
+// 메인 화면 진입
+// ============================================================
+function enterMain() {
+  showScreen('main-screen');
+  document.getElementById('bottom-nav').style.display = 'flex';
+  loadGroup();
+}
+
+function loadGroup() {
+  // 기존 리스너 제거
+  if (groupListener) {
+    db.ref(`groups/${currentGroup}`).off('value', groupListener);
+  }
+
+  // 단일 on('value') 리스너 (메모리에 적힌 베스트 프랙티스)
+  groupListener = db.ref(`groups/${currentGroup}`).on('value', snap => {
+    groupData = snap.val();
+    if (!groupData) {
+      showToast('그룹 정보를 찾을 수 없어요');
+      logout();
+      return;
+    }
+    renderHome();
+  });
+}
+
+// ============================================================
+// 홈 화면 렌더링
+// ============================================================
+function renderHome() {
+  if (!groupData) return;
+
+  const meta = groupData.meta || {};
+  const members = groupData.members || {};
+  const days = calcDays(meta.birthDate);
+
+  // 인사말
+  const hour = new Date().getHours();
+  let greeting = '안녕하세요';
+  if (hour < 6) greeting = '늦은 시간이에요';
+  else if (hour < 12) greeting = '좋은 아침이에요';
+  else if (hour < 18) greeting = '좋은 오후예요';
+  else greeting = '편안한 저녁이에요';
+  document.getElementById('greeting-text').textContent = `${greeting}, ${currentRole}!`;
+  document.getElementById('greeting-sub').textContent = '오늘도 꿀복이와 함께 ☀️';
+
+  // 꿀복이 카드
+  document.getElementById('hero-name').textContent = meta.babyName || '아기';
+  document.getElementById('hero-day').textContent = formatDays(days);
+  document.getElementById('hero-detail').textContent = formatBirthInfo(meta.birthDate, days);
+
+  // 그룹 코드
+  document.getElementById('group-code-display').textContent = `코드 ${currentGroup}`;
+  document.getElementById('modal-big-code').textContent = currentGroup;
+
+  // 멤버 목록
+  const memberEmojis = {
+    '엄마': '👩', '아빠': '👨', '할머니': '👵', '할아버지': '👴',
+    '이모': '💁‍♀️', '삼촌': '💁‍♂️'
+  };
+  const list = document.getElementById('members-list');
+  list.innerHTML = '';
+  Object.entries(members).forEach(([uid, m]) => {
+    const chip = document.createElement('div');
+    chip.className = 'member-chip';
+    const isMe = uid === currentUid;
+    chip.innerHTML = `
+      <span class="member-emoji">${memberEmojis[m.role] || '👤'}</span>
+      <span>${m.role}</span>
+      ${isMe ? '<span class="me-badge">나</span>' : ''}
+    `;
+    list.appendChild(chip);
+  });
+
+  // 설정 모달 정보
+  document.getElementById('my-nickname-display').textContent = currentRole;
+  document.getElementById('baby-name-display').textContent = meta.babyName || '-';
+  if (meta.birthDate) {
+    const d = new Date(meta.birthDate);
+    document.getElementById('baby-birth-display').textContent =
+      `${d.getFullYear()}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getDate().toString().padStart(2,'0')}`;
+  }
+}
+
+// ============================================================
+// 모달 제어
+// ============================================================
+function showInviteModal() {
+  document.getElementById('invite-modal').classList.add('active');
+}
+function closeInviteModal() {
+  document.getElementById('invite-modal').classList.remove('active');
+}
+function openSettings() {
+  document.getElementById('settings-modal').classList.add('active');
+}
+function closeSettings() {
+  document.getElementById('settings-modal').classList.remove('active');
+}
+
+// ============================================================
+// 코드 복사 / 공유
+// ============================================================
+function copyCode() {
+  const code = currentGroup;
+  const text = `🍯 꿀복이 성장 일기 가족 초대 코드: ${code}\n앱: ${window.location.origin}`;
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('코드가 복사됐어요! 가족에게 보내세요');
+    }).catch(() => {
+      fallbackCopy(text);
+    });
+  } else {
+    fallbackCopy(text);
+  }
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+  showToast('코드가 복사됐어요!');
+}
+function shareKakao() {
+  const code = currentGroup;
+  const text = `🍯 꿀복이 성장 일기에 초대합니다!\n\n가족 코드: ${code}\n앱 주소: ${window.location.origin}\n\n위 주소에 접속해서 "가족 코드로 입장"을 눌러 코드를 입력하면 함께 볼 수 있어요!`;
+
+  // Web Share API (모바일 카카오톡 자동 인식)
+  if (navigator.share) {
+    navigator.share({
+      title: '꿀복이 성장 일기 초대',
+      text: text
+    }).catch(() => {});
+  } else {
+    fallbackCopy(text);
+    showToast('내용이 복사됐어요. 카톡에 붙여넣어 주세요');
+  }
+}
+
+// ============================================================
+// 로그아웃 / 그룹 나가기
+// ============================================================
+function logout() {
+  if (!confirm('다른 가족 그룹으로 전환할까요?\n현재 데이터는 그대로 보존됩니다.')) return;
+
+  if (groupListener && currentGroup) {
+    db.ref(`groups/${currentGroup}`).off('value', groupListener);
+  }
+
+  localStorage.removeItem(LS_KEYS.GROUP);
+  localStorage.removeItem(LS_KEYS.UID);
+  localStorage.removeItem(LS_KEYS.ROLE);
+
+  currentGroup = null;
+  currentUid = null;
+  currentRole = null;
+  groupData = null;
+
+  document.getElementById('bottom-nav').style.display = 'none';
+  closeSettings();
+  backToMode();
+  showScreen('start-screen');
+}
+
+// ============================================================
+// 비활성 탭 클릭 안내
+// ============================================================
+document.querySelectorAll('.nav-item.disabled').forEach(item => {
+  item.addEventListener('click', () => {
+    showToast('곧 만들어질 기능이에요 ✨');
+  });
+});
+
+// 모달 외부 클릭 닫기
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', (e) => {
+    if (e.target === m) m.classList.remove('active');
+  });
+});
+
+// ============================================================
+// 앱 시작
+// ============================================================
+function init() {
+  const savedGroup = localStorage.getItem(LS_KEYS.GROUP);
+  const savedUid = localStorage.getItem(LS_KEYS.UID);
+  const savedRole = localStorage.getItem(LS_KEYS.ROLE);
+
+  if (savedGroup && savedUid && savedRole) {
+    // 자동 로그인
+    currentGroup = savedGroup;
+    currentUid = savedUid;
+    currentRole = savedRole;
+
+    // 그룹 존재 확인
+    db.ref(`groups/${savedGroup}/meta`).once('value').then(snap => {
+      if (snap.exists()) {
+        enterMain();
+      } else {
+        // 그룹이 삭제됨
+        localStorage.clear();
+        showScreen('start-screen');
+      }
+    }).catch(err => {
+      console.error('Auto login failed:', err);
+      showScreen('start-screen');
+    });
+  } else {
+    showScreen('start-screen');
+  }
+}
+
+// 페이지 로드 후 시작
+window.addEventListener('DOMContentLoaded', () => {
+  // 약간의 로딩 효과 (0.5초)
+  setTimeout(init, 400);
+});
+</script>
+</body>
+</html>
