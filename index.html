@@ -6,6 +6,18 @@
 <meta name="theme-color" content="#FFF6E0" />
 <title>꿀복이 성장 일기 🍯</title>
 <meta name="description" content="우리 가족만의 성장 기록 - 사진, 영상, 메모로 기록하는 아기의 소중한 순간들" />
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#F5B82E" />
+<link rel="icon" type="image/png" sizes="64x64" href="favicon.png" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="꿀복이" />
+<meta name="mobile-web-app-capable" content="yes" />
+
 <meta property="og:title" content="🍯 꿀복이 성장 일기" />
 <meta property="og:description" content="사진 · 영상 · 메모로 기록하는 우리 아기의 소중한 순간들" />
 <meta property="og:type" content="website" />
@@ -263,7 +275,15 @@
     font-weight: 700;
   }
   .setup-form input[type="text"],
-  .setup-form input[type="date"] {
+  .setup-form input[type="date"],
+  .setup-form input[type="number"],
+  .setup-form input[type="url"],
+  .setup-form textarea,
+  .field input[type="text"],
+  .field input[type="date"],
+  .field input[type="number"],
+  .field input[type="url"],
+  .field textarea {
     width: 100%;
     padding: 14px 18px;
     border: 2px solid var(--cream-warm);
@@ -275,8 +295,18 @@
     text-align: left;
     letter-spacing: normal;
     font-weight: normal;
+    box-sizing: border-box;
   }
-  .setup-form input:focus {
+  .setup-form textarea,
+  .field textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.6;
+  }
+  .setup-form input:focus,
+  .setup-form textarea:focus,
+  .field input:focus,
+  .field textarea:focus {
     outline: none;
     border-color: var(--honey);
     background: var(--white);
@@ -720,6 +750,17 @@
     color: var(--brown);
     line-height: 1.5;
     margin-bottom: 6px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .memo-full {
+    white-space: pre-wrap;
+    word-break: break-word;
+    line-height: 1.7;
   }
   .memory-tags {
     display: flex;
@@ -1101,6 +1142,153 @@
     width: 20px;
     height: 20px;
     accent-color: var(--honey-deep);
+  }
+
+  /* ===== 설정 모달 ===== */
+  .settings-section {
+    background: var(--butter);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .settings-section-title {
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: var(--brown);
+    margin-bottom: 10px;
+  }
+  .settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+  }
+  .settings-label {
+    color: var(--brown);
+    font-size: 14px;
+  }
+  .settings-value {
+    color: var(--honey-deep);
+    font-weight: 700;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .edit-btn {
+    background: var(--cream-warm);
+    border: none;
+    border-radius: 8px;
+    padding: 6px 10px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  .settings-code-display {
+    background: var(--white);
+    border: 2px dashed var(--honey);
+    border-radius: 14px;
+    padding: 14px;
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-family: var(--font-en);
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--honey-deep);
+    letter-spacing: 6px;
+    transition: transform 0.15s ease;
+  }
+  .settings-code-display:active {
+    transform: scale(0.98);
+  }
+  .copy-icon {
+    font-size: 18px;
+    letter-spacing: 0;
+  }
+  .settings-members {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .settings-toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--brown);
+  }
+  .settings-toggle-row input[type="checkbox"] {
+    width: 44px;
+    height: 24px;
+    appearance: none;
+    background: var(--cream-warm);
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .settings-toggle-row input[type="checkbox"]:checked {
+    background: var(--honey);
+  }
+  .settings-toggle-row input[type="checkbox"]::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.2s;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  .settings-toggle-row input[type="checkbox"]:checked::before {
+    transform: translateX(20px);
+  }
+
+  /* 알림 토스트 (인앱) */
+  .notification-banner {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-120%);
+    width: calc(100% - 32px);
+    max-width: 450px;
+    background: linear-gradient(135deg, var(--honey) 0%, var(--honey-deep) 100%);
+    color: white;
+    padding: 14px 18px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(229, 155, 60, 0.4);
+    z-index: 1000;
+    transition: transform 0.4s ease;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .notification-banner.show {
+    transform: translateX(-50%) translateY(0);
+  }
+  .notification-banner-emoji {
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+  .notification-banner-content {
+    flex: 1;
+  }
+  .notification-banner-title {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .notification-banner-text {
+    font-size: 12px;
+    opacity: 0.95;
   }
 
   /* ===== 로딩 ===== */
@@ -1605,24 +1793,120 @@
       <div class="modal-title">설정 ⚙️</div>
       <button class="modal-close" onclick="closeSettings()">✕</button>
     </div>
-    <div style="padding: 8px 0;">
-      <div style="padding: 14px 0; border-bottom: 1px solid var(--cream-warm); display: flex; justify-content: space-between;">
-        <span>내 닉네임</span>
-        <strong id="my-nickname-display" style="color: var(--honey-deep);">-</strong>
+
+    <!-- 가족 코드 (눈에 띄게) -->
+    <div class="settings-section">
+      <div class="settings-section-title">💌 가족 코드</div>
+      <div class="settings-code-display" id="settings-code-display" onclick="copyGroupCode()">
+        <span id="settings-code-text">------</span>
+        <span class="copy-icon">📋</span>
       </div>
-      <div style="padding: 14px 0; border-bottom: 1px solid var(--cream-warm); display: flex; justify-content: space-between;">
-        <span>아기 이름</span>
-        <strong id="baby-name-display" style="color: var(--honey-deep);">-</strong>
+      <p style="font-size:12px;color:var(--brown-soft);text-align:center;margin-top:6px;">
+        탭하면 복사돼요 · 가족에게 공유하세요
+      </p>
+      <button class="btn-secondary" onclick="shareKakao()" style="margin-top:10px;">
+        📤 카카오톡으로 공유하기
+      </button>
+    </div>
+
+    <!-- 아기 정보 -->
+    <div class="settings-section">
+      <div class="settings-section-title">👶 아기 정보</div>
+
+      <div class="settings-row" id="baby-name-row">
+        <div class="settings-label">이름</div>
+        <div class="settings-value">
+          <span id="baby-name-display">-</span>
+          <button class="edit-btn" onclick="editBabyName()">✏️</button>
+        </div>
       </div>
-      <div style="padding: 14px 0; border-bottom: 1px solid var(--cream-warm); display: flex; justify-content: space-between;">
-        <span>출생일</span>
-        <strong id="baby-birth-display" style="color: var(--honey-deep);">-</strong>
+      <div id="baby-name-edit" style="display:none; padding: 8px 0;">
+        <input type="text" id="baby-name-input" maxlength="10" placeholder="예: 꿀복이" />
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn-primary" style="flex:1;padding:10px;" onclick="saveBabyName()">저장</button>
+          <button class="btn-secondary" style="flex:1;padding:10px;" onclick="cancelEditBabyName()">취소</button>
+        </div>
       </div>
-      <div style="padding: 14px 0; display: flex; justify-content: space-between; cursor: pointer;" onclick="logout()">
-        <span style="color: #c45454;">다른 가족으로 전환</span>
-        <span>›</span>
+
+      <div class="settings-row">
+        <div class="settings-label">출생일</div>
+        <div class="settings-value">
+          <span id="baby-birth-display">-</span>
+          <button class="edit-btn" onclick="editBirthDate()">✏️</button>
+        </div>
+      </div>
+      <div id="baby-birth-edit" style="display:none; padding: 8px 0;">
+        <input type="date" id="baby-birth-input" />
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn-primary" style="flex:1;padding:10px;" onclick="saveBirthDate()">저장</button>
+          <button class="btn-secondary" style="flex:1;padding:10px;" onclick="cancelEditBirthDate()">취소</button>
+        </div>
       </div>
     </div>
+
+    <!-- 내 정보 -->
+    <div class="settings-section">
+      <div class="settings-section-title">🙋 내 정보</div>
+      <div class="settings-row">
+        <div class="settings-label">내 닉네임</div>
+        <div class="settings-value">
+          <span id="my-nickname-display">-</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 가족 멤버 목록 -->
+    <div class="settings-section">
+      <div class="settings-section-title">👨‍👩‍👧 우리 가족</div>
+      <div id="settings-members-list" class="settings-members"></div>
+    </div>
+
+    <!-- 알림 설정 -->
+    <div class="settings-section">
+      <div class="settings-section-title">🔔 알림</div>
+      <label class="settings-toggle-row">
+        <span>새 기록 알림 (진동 + 사운드)</span>
+        <input type="checkbox" id="notify-enabled" onchange="toggleNotifications()">
+      </label>
+      <p style="font-size:11px;color:var(--brown-soft);margin-top:4px;line-height:1.5;">
+        💡 가족이 새 기록을 올리면 앱이 켜져있을 때<br>진동과 알림으로 알려드려요
+      </p>
+    </div>
+
+    <!-- PWA 설치 안내 -->
+    <div class="settings-section" id="pwa-install-section">
+      <div class="settings-section-title">📱 앱 설치</div>
+      <p style="font-size:13px;color:var(--brown);margin-bottom:10px;line-height:1.6;">
+        홈 화면에 아이콘으로 추가하면<br>
+        진짜 앱처럼 사용할 수 있어요!
+      </p>
+      <button class="btn-primary" id="pwa-install-btn" onclick="installPWA()" style="display:none;">
+        📥 홈 화면에 추가하기
+      </button>
+      <details style="margin-top:8px;">
+        <summary style="cursor:pointer;color:var(--honey-deep);font-size:13px;padding:6px 0;">
+          ℹ️ 수동으로 설치하는 방법
+        </summary>
+        <div style="font-size:12px;color:var(--brown-soft);padding:8px 0;line-height:1.7;">
+          <strong>📱 안드로이드 (Chrome):</strong><br>
+          우측 상단 ⋮ → "홈 화면에 추가"<br><br>
+          <strong>🍎 아이폰 (Safari):</strong><br>
+          하단 공유 버튼 → "홈 화면에 추가"
+        </div>
+      </details>
+    </div>
+
+    <!-- 로그아웃 -->
+    <div class="settings-section">
+      <div class="settings-row" style="cursor:pointer;" onclick="logout()">
+        <div class="settings-label" style="color: #c45454;">🚪 다른 가족으로 전환</div>
+        <div class="settings-value">›</div>
+      </div>
+    </div>
+
+    <p style="text-align:center;font-size:11px;color:var(--gray-soft);padding:10px 0;">
+      🍯 honeybok v1.0
+    </p>
   </div>
 </div>
 
@@ -1671,12 +1955,12 @@
       <input type="date" id="memory-date" />
     </div>
     <div class="field">
-      <label>한 줄 메모 <span style="color:var(--gray-soft);font-weight:normal;">(선택)</span></label>
-      <input type="text" id="memory-memo" placeholder="예: 처음 웃은 날 ✨" maxlength="100" />
+      <label>메모 <span style="color:var(--gray-soft);font-weight:normal;">(원하는 만큼 길게)</span></label>
+      <textarea id="memory-memo" placeholder="예: 오늘 꿀복이 처음으로 옹알이 시작했어!&#10;엄마 아빠 보면서 으아 으아 소리를 냈다 🥰" maxlength="2000" rows="5"></textarea>
     </div>
     <div class="field">
       <label>태그 <span style="color:var(--gray-soft);font-weight:normal;">(선택, 쉼표로 구분)</span></label>
-      <input type="text" id="memory-tags" placeholder="예: 첫웃음, 100일, 백일잔치" maxlength="50" />
+      <input type="text" id="memory-tags" placeholder="예: 첫웃음, 100일, 백일잔치" maxlength="100" />
     </div>
 
     <button class="btn-primary" id="save-memory-btn" onclick="saveMemory()" style="margin-top:8px;">저장하기 🍯</button>
@@ -1705,6 +1989,15 @@
 
 <!-- 토스트 -->
 <div class="toast" id="toast">메시지</div>
+
+<!-- 인앱 알림 배너 -->
+<div class="notification-banner" id="notification-banner" onclick="dismissNotification()">
+  <div class="notification-banner-emoji" id="notif-emoji">📸</div>
+  <div class="notification-banner-content">
+    <div class="notification-banner-title" id="notif-title">새 기록</div>
+    <div class="notification-banner-text" id="notif-text">방금 누군가 기록을 추가했어요</div>
+  </div>
+</div>
 
 <script>
 // ============================================================
@@ -1988,6 +2281,7 @@ function loadGroup() {
       logout();
       return;
     }
+    detectNewRecords();   // 새 기록 감지 → 알림
     renderHome();
   });
 }
@@ -2050,6 +2344,26 @@ function renderHome() {
     const d = new Date(meta.birthDate);
     document.getElementById('baby-birth-display').textContent =
       `${d.getFullYear()}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getDate().toString().padStart(2,'0')}`;
+  }
+  // 설정 모달 - 그룹 코드 표시
+  const settingsCodeEl = document.getElementById('settings-code-text');
+  if (settingsCodeEl) settingsCodeEl.textContent = currentGroup;
+
+  // 설정 모달 - 가족 멤버 리스트
+  const settingsMembers = document.getElementById('settings-members-list');
+  if (settingsMembers) {
+    settingsMembers.innerHTML = '';
+    Object.entries(members).forEach(([uid, m]) => {
+      const chip = document.createElement('div');
+      chip.className = 'member-chip';
+      const isMe = uid === currentUid;
+      chip.innerHTML = `
+        <span class="member-emoji">${memberEmojis[m.role] || '👤'}</span>
+        <span>${m.role}</span>
+        ${isMe ? '<span class="me-badge">나</span>' : ''}
+      `;
+      settingsMembers.appendChild(chip);
+    });
   }
 
   // 최근 추억 미리보기
@@ -2243,6 +2557,9 @@ function openAddPhoto() {
   document.getElementById('photo-uploading').style.display = 'none';
   document.getElementById('photo-input').value = '';
   resetCommonFields();
+  const memoTextarea = document.getElementById('memory-memo');
+  memoTextarea.placeholder = '예: 오늘 처음 웃은 우리 꿀복이 ✨';
+  memoTextarea.rows = 4;
   document.getElementById('add-modal').classList.add('active');
 }
 
@@ -2255,6 +2572,9 @@ function openAddVideo() {
   document.getElementById('video-url').value = '';
   document.getElementById('video-preview-area').style.display = 'none';
   resetCommonFields();
+  const memoTextarea = document.getElementById('memory-memo');
+  memoTextarea.placeholder = '예: 첫 옹알이 영상 🎬';
+  memoTextarea.rows = 4;
   document.getElementById('add-modal').classList.add('active');
 }
 
@@ -2264,6 +2584,10 @@ function openAddMemo() {
   document.getElementById('add-photo-section').style.display = 'none';
   document.getElementById('add-video-section').style.display = 'none';
   resetCommonFields();
+  // 메모 모드일 때는 textarea 크게
+  const memoTextarea = document.getElementById('memory-memo');
+  memoTextarea.placeholder = '오늘 꿀복이는 어땠어요?\n자유롭게 적어주세요 💛\n\n예) 오늘은 처음으로 까꿍 놀이를 했다.\n까르륵 웃는 모습이 정말 사랑스러웠어 🥰';
+  memoTextarea.rows = 8;
   document.getElementById('add-modal').classList.add('active');
 }
 
@@ -2473,7 +2797,7 @@ function openDetail(id) {
       <span class="memory-day-badge">${dayBadge}</span>
       <span style="margin-left:8px;color:var(--brown-soft);font-size:13px;">by ${escapeHtml(moment.author || '?')}</span>
     </div>
-    ${moment.memo ? `<div style="font-size:16px;color:var(--brown);line-height:1.6;margin-bottom:8px;">${escapeHtml(moment.memo)}</div>` : ''}
+    ${moment.memo ? `<div class="memo-full" style="font-size:16px;color:var(--brown);margin-bottom:8px;background:var(--butter);padding:14px 18px;border-radius:14px;">${escapeHtml(moment.memo)}</div>` : ''}
     ${tagsHtml}
   `;
 
@@ -2532,6 +2856,262 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+// ============================================================
+// ============  설정 - 아기 정보 수정  ============
+// ============================================================
+function editBabyName() {
+  const meta = groupData?.meta || {};
+  document.getElementById('baby-name-input').value = meta.babyName || '';
+  document.getElementById('baby-name-row').style.display = 'none';
+  document.getElementById('baby-name-edit').style.display = 'block';
+  document.getElementById('baby-name-input').focus();
+}
+function cancelEditBabyName() {
+  document.getElementById('baby-name-row').style.display = 'flex';
+  document.getElementById('baby-name-edit').style.display = 'none';
+}
+async function saveBabyName() {
+  const newName = document.getElementById('baby-name-input').value.trim();
+  if (!newName) { showToast('이름을 입력해주세요'); return; }
+  try {
+    await db.ref(`groups/${currentGroup}/meta/babyName`).set(newName);
+    showToast('이름이 변경됐어요 ✨');
+    cancelEditBabyName();
+  } catch (err) {
+    showToast('변경 실패: ' + err.message);
+  }
+}
+
+function editBirthDate() {
+  const meta = groupData?.meta || {};
+  document.getElementById('baby-birth-input').value = meta.birthDate || '';
+  document.getElementById('baby-birth-edit').style.display = 'block';
+}
+function cancelEditBirthDate() {
+  document.getElementById('baby-birth-edit').style.display = 'none';
+}
+async function saveBirthDate() {
+  const newDate = document.getElementById('baby-birth-input').value;
+  if (!newDate) { showToast('날짜를 선택해주세요'); return; }
+  try {
+    await db.ref(`groups/${currentGroup}/meta/birthDate`).set(newDate);
+    showToast('출생일이 변경됐어요 ✨');
+    cancelEditBirthDate();
+  } catch (err) {
+    showToast('변경 실패: ' + err.message);
+  }
+}
+
+// 그룹 코드 복사 (설정 화면용)
+function copyGroupCode() {
+  const code = currentGroup;
+  const text = `🍯 꿀복이 성장 일기 가족 초대!\n\n가족 코드: ${code}\n앱 주소: ${window.location.origin}${window.location.pathname}\n\n위 주소 접속 → "가족 코드로 입장" → 코드 입력하면 함께 볼 수 있어요!`;
+
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('코드 + 안내 복사됐어요! 💌');
+      // 진동 피드백
+      if (navigator.vibrate) navigator.vibrate(30);
+    }).catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+// ============================================================
+// ============  PWA 설치  ============
+// ============================================================
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // 설정 모달의 설치 버튼 표시
+  const btn = document.getElementById('pwa-install-btn');
+  if (btn) btn.style.display = 'block';
+});
+
+function installPWA() {
+  if (!deferredPrompt) {
+    showToast('이미 설치돼있거나 지원하지 않는 환경이에요');
+    return;
+  }
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then((result) => {
+    if (result.outcome === 'accepted') {
+      showToast('설치 완료! 🎉');
+      document.getElementById('pwa-install-btn').style.display = 'none';
+    }
+    deferredPrompt = null;
+  });
+}
+
+window.addEventListener('appinstalled', () => {
+  showToast('🎉 홈 화면에 추가됐어요!');
+  document.getElementById('pwa-install-btn').style.display = 'none';
+});
+
+// Service Worker 등록
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then((reg) => {
+        console.log('[SW] Registered:', reg.scope);
+
+        // 업데이트 감지
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          if (newSW) {
+            newSW.addEventListener('statechange', () => {
+              if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+                // 새 버전 있음
+                if (confirm('🎉 새 버전이 있어요! 지금 업데이트할까요?')) {
+                  newSW.postMessage({ type: 'SKIP_WAITING' });
+                  window.location.reload();
+                }
+              }
+            });
+          }
+        });
+      })
+      .catch((err) => console.warn('[SW] Registration failed:', err));
+  });
+}
+
+// ============================================================
+// ============  인앱 실시간 알림  ============
+// ============================================================
+const NOTIFY_LS_KEY = 'honeybok_notify_enabled';
+
+function isNotifyEnabled() {
+  return localStorage.getItem(NOTIFY_LS_KEY) === '1';
+}
+
+function toggleNotifications() {
+  const enabled = document.getElementById('notify-enabled').checked;
+  localStorage.setItem(NOTIFY_LS_KEY, enabled ? '1' : '0');
+  if (enabled) {
+    // 테스트 진동
+    if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+    showToast('알림 켜졌어요 🔔');
+    // 권한 요청 (선택)
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  } else {
+    showToast('알림 꺼졌어요');
+  }
+}
+
+// 알림 배너 표시
+let notifTimer = null;
+function showNotificationBanner(emoji, title, text) {
+  if (!isNotifyEnabled()) return;
+
+  document.getElementById('notif-emoji').textContent = emoji;
+  document.getElementById('notif-title').textContent = title;
+  document.getElementById('notif-text').textContent = text;
+  document.getElementById('notification-banner').classList.add('show');
+
+  // 진동
+  if (navigator.vibrate) {
+    navigator.vibrate([100, 50, 100]);
+  }
+
+  // 사운드 (브라우저 알림음 흉내)
+  try {
+    playNotificationSound();
+  } catch (e) {}
+
+  // 자동 닫기
+  if (notifTimer) clearTimeout(notifTimer);
+  notifTimer = setTimeout(() => {
+    document.getElementById('notification-banner').classList.remove('show');
+  }, 5000);
+}
+
+function dismissNotification() {
+  document.getElementById('notification-banner').classList.remove('show');
+  if (notifTimer) clearTimeout(notifTimer);
+}
+
+// 부드러운 알림 사운드 (Web Audio API)
+function playNotificationSound() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+
+    // 도-미 두 음
+    [800, 1000].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+
+      gain.gain.setValueAtTime(0, now + i * 0.15);
+      gain.gain.linearRampToValueAtTime(0.15, now + i * 0.15 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.3);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start(now + i * 0.15);
+      osc.stop(now + i * 0.15 + 0.3);
+    });
+  } catch (e) {
+    console.warn('Audio failed:', e);
+  }
+}
+
+// 새 기록 감지를 위한 상태
+let knownMomentIds = new Set();
+let knownGrowthIds = new Set();
+let isFirstLoad = true;
+
+function detectNewRecords() {
+  if (!groupData) return;
+
+  const moments = groupData.moments || {};
+  const growth = groupData.growth || {};
+
+  const currentMomentIds = new Set(Object.keys(moments));
+  const currentGrowthIds = new Set(Object.keys(growth));
+
+  if (isFirstLoad) {
+    knownMomentIds = currentMomentIds;
+    knownGrowthIds = currentGrowthIds;
+    isFirstLoad = false;
+    return;
+  }
+
+  // 새로 추가된 기록 찾기
+  const newMomentIds = [...currentMomentIds].filter(id => !knownMomentIds.has(id));
+  const newGrowthIds = [...currentGrowthIds].filter(id => !knownGrowthIds.has(id));
+
+  newMomentIds.forEach(id => {
+    const m = moments[id];
+    if (!m || m.authorUid === currentUid) return;  // 내가 추가한 건 알림 안 함
+    const emoji = m.type === 'photo' ? '📷' : m.type === 'video' ? '🎬' : '✏️';
+    const typeName = m.type === 'photo' ? '사진' : m.type === 'video' ? '영상' : '메모';
+    showNotificationBanner(emoji, `${m.author || '가족'}님이 ${typeName} 추가!`, m.memo || `새로운 ${typeName}을 올렸어요`);
+  });
+
+  newGrowthIds.forEach(id => {
+    const g = growth[id];
+    if (!g || g.authorUid === currentUid) return;
+    const stats = [];
+    if (g.height) stats.push(`키 ${g.height}cm`);
+    if (g.weight) stats.push(`몸무게 ${g.weight}kg`);
+    if (g.head) stats.push(`머리 ${g.head}cm`);
+    showNotificationBanner('📈', `${g.author || '가족'}님이 성장 기록 추가!`, stats.join(' · '));
+  });
+
+  knownMomentIds = currentMomentIds;
+  knownGrowthIds = currentGrowthIds;
 }
 
 // ============================================================
@@ -3315,6 +3895,14 @@ function closeInviteModal() {
   document.getElementById('invite-modal').classList.remove('active');
 }
 function openSettings() {
+  // 알림 토글 상태 복원
+  const notifyToggle = document.getElementById('notify-enabled');
+  if (notifyToggle) notifyToggle.checked = isNotifyEnabled();
+  // 편집 모드 초기화
+  document.getElementById('baby-name-row').style.display = 'flex';
+  document.getElementById('baby-name-edit').style.display = 'none';
+  document.getElementById('baby-birth-edit').style.display = 'none';
+
   document.getElementById('settings-modal').classList.add('active');
 }
 function closeSettings() {

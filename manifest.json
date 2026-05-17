@@ -1,0 +1,33 @@
+{
+  "name": "꿀복이 성장 일기",
+  "short_name": "꿀복이",
+  "description": "우리 가족만의 성장 기록 - 사진, 영상, 메모로 기록하는 아기의 소중한 순간들",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FFF6E0",
+  "theme_color": "#F5B82E",
+  "lang": "ko",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["lifestyle", "social"]
+}
