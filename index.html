@@ -1369,19 +1369,10 @@
     <h1 class="app-title">꿀복이 성장 일기</h1>
     <p class="app-subtitle">Honey Bok's Growth Diary</p>
 
-    <!-- 모드 선택 (코드 만들기 / 코드 입력) -->
-    <div id="mode-select" class="start-card">
-      <h3>처음 오셨어요?</h3>
-      <p>아기 정보를 입력하고 우리 가족만의 코드를 만들어요</p>
-      <button class="btn-primary" onclick="showCreateForm()">새로 시작하기</button>
-      <div class="divider">또는</div>
-      <button class="btn-secondary" onclick="showJoinForm()">가족 코드로 입장</button>
-    </div>
-
-    <!-- 새로 만들기 폼 -->
+    <!-- 첫 사용자: 아기 정보 입력 (가족 중 누군가 처음 켰을 때만) -->
     <div id="create-form" class="start-card" style="display:none;">
-      <h3>아기 정보 입력</h3>
-      <p>꿀복이의 정보를 알려주세요</p>
+      <h3>처음 오셨네요! 🍯</h3>
+      <p>먼저 아기 정보를 알려주세요<br>(가족 중 한 분만 입력하면 돼요)</p>
       <div class="setup-form">
         <div class="field">
           <label>아기 이름 (또는 태명)</label>
@@ -1392,23 +1383,13 @@
           <input type="date" id="baby-birth" />
         </div>
       </div>
-      <button class="btn-primary" onclick="createGroup()">코드 만들기 ✨</button>
-      <button class="btn-secondary" onclick="backToMode()">← 돌아가기</button>
-    </div>
-
-    <!-- 코드 입력 폼 -->
-    <div id="join-form" class="start-card" style="display:none;">
-      <h3>가족 코드 입력</h3>
-      <p>가족이 알려준 6자리 코드를 입력해 주세요</p>
-      <input type="text" id="join-code" placeholder="ABCD12" maxlength="6" autocapitalize="characters" />
-      <button class="btn-primary" onclick="joinGroup()">입장하기</button>
-      <button class="btn-secondary" onclick="backToMode()">← 돌아가기</button>
+      <button class="btn-primary" onclick="createGroup()">다음 ✨</button>
     </div>
 
     <!-- 닉네임 선택 -->
     <div id="role-form" class="start-card" style="display:none;">
       <h3>누구신가요?</h3>
-      <p>꿀복이에게 어떤 사람인지 알려주세요</p>
+      <p>꿀복이에게 어떤 사람인지 선택해주세요<br><span style="font-size:12px;color:var(--gray-soft);">같은 사람은 같은 걸 선택하세요 (중복 방지)</span></p>
 
       <!-- 부모 -->
       <div class="role-section-label">👨‍👩‍👧 엄마 · 아빠</div>
@@ -1517,7 +1498,7 @@
       <div class="members-section">
         <div class="members-title">
           <span>우리 가족 💛</span>
-          <span class="group-code-badge" id="group-code-display" onclick="showInviteModal()">코드 ABCD12</span>
+          <span class="group-code-badge" id="group-code-display" onclick="shareApp()">📤 가족 초대</span>
         </div>
         <div class="members-list" id="members-list"></div>
       </div>
@@ -1775,14 +1756,20 @@
       <div class="modal-title">가족 초대 💌</div>
       <button class="modal-close" onclick="closeInviteModal()">✕</button>
     </div>
-    <p style="color: var(--brown-soft); font-size: 14px; margin-bottom: 8px;">
-      이 코드를 가족에게 알려주세요<br>
-      가족이 같은 화면을 함께 볼 수 있어요
-    </p>
-    <div class="big-code" id="modal-big-code">ABCD12</div>
-    <p class="copy-hint" id="copy-hint">코드를 눌러서 복사하세요</p>
-    <button class="btn-primary" onclick="copyCode()">코드 복사하기</button>
-    <button class="btn-secondary" onclick="shareKakao()">카카오톡으로 공유</button>
+    <div style="text-align:center;padding:8px 0 16px;">
+      <div style="font-size:48px;margin-bottom:12px;">🍯</div>
+      <p style="color: var(--brown); font-size: 15px; line-height:1.6; margin-bottom: 6px;">
+        가족에게 <strong>이 앱 주소</strong>를 보내주세요
+      </p>
+      <p style="color: var(--brown-soft); font-size: 13px; margin-bottom: 16px;">
+        주소 접속 → 닉네임 선택하면<br>바로 같은 화면을 함께 볼 수 있어요
+      </p>
+    </div>
+    <div class="big-code" id="modal-app-url" style="font-size:16px;letter-spacing:0;word-break:break-all;padding:16px;">
+      불러오는 중...
+    </div>
+    <button class="btn-primary" onclick="copyAppUrl()" style="margin-top:12px;">📋 앱 주소 복사하기</button>
+    <button class="btn-secondary" onclick="shareApp()">📤 카카오톡 / 메시지로 공유</button>
   </div>
 </div>
 
@@ -1794,18 +1781,19 @@
       <button class="modal-close" onclick="closeSettings()">✕</button>
     </div>
 
-    <!-- 가족 코드 (눈에 띄게) -->
+    <!-- 가족 초대 -->
     <div class="settings-section">
-      <div class="settings-section-title">💌 가족 코드</div>
-      <div class="settings-code-display" id="settings-code-display" onclick="copyGroupCode()">
-        <span id="settings-code-text">------</span>
+      <div class="settings-section-title">💌 가족 초대</div>
+      <p style="font-size:13px;color:var(--brown);line-height:1.6;margin-bottom:10px;">
+        가족에게 <strong>이 앱 주소</strong>를 보내면<br>
+        닉네임만 고르고 바로 함께 쓸 수 있어요
+      </p>
+      <div class="settings-code-display" id="settings-code-display" onclick="copyAppUrl()" style="font-size:14px;letter-spacing:0;word-break:break-all;">
+        <span id="settings-code-text">앱 주소</span>
         <span class="copy-icon">📋</span>
       </div>
-      <p style="font-size:12px;color:var(--brown-soft);text-align:center;margin-top:6px;">
-        탭하면 복사돼요 · 가족에게 공유하세요
-      </p>
-      <button class="btn-secondary" onclick="shareKakao()" style="margin-top:10px;">
-        📤 카카오톡으로 공유하기
+      <button class="btn-secondary" onclick="shareApp()" style="margin-top:10px;">
+        📤 카카오톡 / 메시지로 공유하기
       </button>
     </div>
 
@@ -1899,7 +1887,7 @@
     <!-- 로그아웃 -->
     <div class="settings-section">
       <div class="settings-row" style="cursor:pointer;" onclick="logout()">
-        <div class="settings-label" style="color: #c45454;">🚪 다른 가족으로 전환</div>
+        <div class="settings-label" style="color: #c45454;">🔄 닉네임 다시 선택</div>
         <div class="settings-value">›</div>
       </div>
     </div>
@@ -2051,12 +2039,14 @@ const CLOUDINARY_UPLOAD_PRESET = 'honeybok_unsigned';
 // ============================================================
 // 전역 상태
 // ============================================================
-let currentGroup = null;        // 현재 그룹 코드
-let currentUid = null;          // 내 사용자 ID (랜덤 생성)
-let currentRole = null;         // 내 역할 (엄마/아빠/할머니 등)
+// 우리 가족 고정 그룹 (코드 입력 불필요 - 가족만 URL 공유)
+const FIXED_GROUP = 'honeybok_family';
+
+let currentGroup = FIXED_GROUP;
+let currentUid = null;          // 내 기기 ID
+let currentRole = null;         // 내 역할 (엄마/아빠/할머니 등) = 고유키
 let groupData = null;           // 그룹 전체 데이터
 let groupListener = null;       // Firebase 리스너
-let pendingGroupCode = null;    // 입장 시 임시 보관
 
 // 추억 기록 상태
 let currentTab = 'home';
@@ -2070,7 +2060,6 @@ let currentDetailId = null;     // 상세보기 중인 추억 ID
 // localStorage 키
 // ============================================================
 const LS_KEYS = {
-  GROUP: 'honeybok_group',
   UID: 'honeybok_uid',
   ROLE: 'honeybok_role'
 };
@@ -2139,35 +2128,13 @@ function formatBirthInfo(birthDateStr, days) {
 // ============================================================
 // 시작 화면 라우팅
 // ============================================================
-function showCreateForm() {
-  document.getElementById('mode-select').style.display = 'none';
-  document.getElementById('create-form').style.display = 'block';
-  document.getElementById('baby-name').focus();
-}
-function showJoinForm() {
-  document.getElementById('mode-select').style.display = 'none';
-  document.getElementById('join-form').style.display = 'block';
-  const input = document.getElementById('join-code');
-  input.focus();
-  input.addEventListener('input', e => {
-    e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-  });
-}
-function backToMode() {
-  document.getElementById('mode-select').style.display = 'block';
-  document.getElementById('create-form').style.display = 'none';
-  document.getElementById('join-form').style.display = 'none';
-  document.getElementById('role-form').style.display = 'none';
-}
 function showRoleForm() {
-  document.getElementById('mode-select').style.display = 'none';
   document.getElementById('create-form').style.display = 'none';
-  document.getElementById('join-form').style.display = 'none';
   document.getElementById('role-form').style.display = 'block';
 }
 
 // ============================================================
-// 그룹 생성
+// 아기 정보 저장 (첫 사용자만)
 // ============================================================
 async function createGroup() {
   const name = document.getElementById('baby-name').value.trim();
@@ -2176,45 +2143,13 @@ async function createGroup() {
   if (!name) { showToast('아기 이름을 입력해주세요'); return; }
   if (!birth) { showToast('출생일을 선택해주세요'); return; }
 
-  // 유니크 코드 생성 (충돌 방지)
-  let code, exists = true, attempts = 0;
-  while (exists && attempts < 10) {
-    code = generateGroupCode();
-    const snap = await db.ref(`groups/${code}/meta`).once('value');
-    exists = snap.exists();
-    attempts++;
-  }
-
-  if (exists) {
-    showToast('코드 생성 실패, 다시 시도해주세요');
-    return;
-  }
-
-  // 그룹 데이터 저장
-  await db.ref(`groups/${code}/meta`).set({
+  // 고정 그룹에 아기 정보 저장
+  await db.ref(`groups/${FIXED_GROUP}/meta`).set({
     babyName: name,
     birthDate: birth,
     createdAt: Date.now()
   });
 
-  pendingGroupCode = code;
-  showRoleForm();
-}
-
-// ============================================================
-// 그룹 입장
-// ============================================================
-async function joinGroup() {
-  const code = document.getElementById('join-code').value.trim().toUpperCase();
-  if (code.length !== 6) { showToast('6자리 코드를 입력해주세요'); return; }
-
-  const snap = await db.ref(`groups/${code}/meta`).once('value');
-  if (!snap.exists()) {
-    showToast('잘못된 코드예요. 다시 확인해주세요');
-    return;
-  }
-
-  pendingGroupCode = code;
   showRoleForm();
 }
 
@@ -2229,22 +2164,25 @@ function selectRole(el) {
 }
 
 async function confirmRole() {
-  if (!currentRole || !pendingGroupCode) return;
+  if (!currentRole) return;
 
-  const uid = generateUid();
-  await db.ref(`groups/${pendingGroupCode}/members/${uid}`).set({
+  // 닉네임을 고유키로 사용 → 같은 닉네임이면 중복 안 생김
+  // (카톡 브라우저든 크롬이든 "아빠" 선택하면 같은 자리)
+  const memberKey = encodeURIComponent(currentRole);
+  const uid = currentUid || generateUid();
+
+  await db.ref(`groups/${FIXED_GROUP}/members/${memberKey}`).set({
     role: currentRole,
+    deviceId: uid,
     joinedAt: Date.now()
   });
 
-  // localStorage 저장
-  localStorage.setItem(LS_KEYS.GROUP, pendingGroupCode);
+  // localStorage 저장 (코드는 더이상 저장 안 함)
   localStorage.setItem(LS_KEYS.UID, uid);
   localStorage.setItem(LS_KEYS.ROLE, currentRole);
 
-  currentGroup = pendingGroupCode;
+  currentGroup = FIXED_GROUP;
   currentUid = uid;
-  pendingGroupCode = null;
 
   enterMain();
 }
@@ -2311,11 +2249,12 @@ function renderHome() {
   document.getElementById('hero-day').textContent = formatDays(days);
   document.getElementById('hero-detail').textContent = formatBirthInfo(meta.birthDate, days);
 
-  // 그룹 코드
-  document.getElementById('group-code-display').textContent = `코드 ${currentGroup}`;
-  document.getElementById('modal-big-code').textContent = currentGroup;
+  // 앱 주소 표시
+  const appUrl = window.location.origin + window.location.pathname;
+  const urlEl = document.getElementById('modal-app-url');
+  if (urlEl) urlEl.textContent = appUrl;
 
-  // 멤버 목록
+  // 멤버 목록 (닉네임이 키)
   const memberEmojis = {
     '엄마': '👩', '아빠': '👨',
     '할머니': '👵', '할아버지': '👴',
@@ -2325,10 +2264,10 @@ function renderHome() {
   };
   const list = document.getElementById('members-list');
   list.innerHTML = '';
-  Object.entries(members).forEach(([uid, m]) => {
+  Object.entries(members).forEach(([key, m]) => {
     const chip = document.createElement('div');
     chip.className = 'member-chip';
-    const isMe = uid === currentUid;
+    const isMe = m.role === currentRole;
     chip.innerHTML = `
       <span class="member-emoji">${memberEmojis[m.role] || '👤'}</span>
       <span>${m.role}</span>
@@ -2345,22 +2284,26 @@ function renderHome() {
     document.getElementById('baby-birth-display').textContent =
       `${d.getFullYear()}.${(d.getMonth()+1).toString().padStart(2,'0')}.${d.getDate().toString().padStart(2,'0')}`;
   }
-  // 설정 모달 - 그룹 코드 표시
+  // 설정 모달 - 앱 주소 표시
   const settingsCodeEl = document.getElementById('settings-code-text');
-  if (settingsCodeEl) settingsCodeEl.textContent = currentGroup;
+  if (settingsCodeEl) settingsCodeEl.textContent = appUrl;
 
-  // 설정 모달 - 가족 멤버 리스트
+  // 설정 모달 - 가족 멤버 리스트 (삭제 버튼 포함)
   const settingsMembers = document.getElementById('settings-members-list');
   if (settingsMembers) {
     settingsMembers.innerHTML = '';
-    Object.entries(members).forEach(([uid, m]) => {
+    const entries = Object.entries(members);
+    if (entries.length === 0) {
+      settingsMembers.innerHTML = '<p style="font-size:13px;color:var(--brown-soft);">아직 멤버가 없어요</p>';
+    }
+    entries.forEach(([key, m]) => {
       const chip = document.createElement('div');
       chip.className = 'member-chip';
-      const isMe = uid === currentUid;
+      const isMe = m.role === currentRole;
       chip.innerHTML = `
         <span class="member-emoji">${memberEmojis[m.role] || '👤'}</span>
         <span>${m.role}</span>
-        ${isMe ? '<span class="me-badge">나</span>' : ''}
+        ${isMe ? '<span class="me-badge">나</span>' : `<span onclick="removeMember('${key}','${escapeHtml(m.role)}')" style="margin-left:6px;color:#C04040;cursor:pointer;font-size:14px;">✕</span>`}
       `;
       settingsMembers.appendChild(chip);
     });
@@ -2904,19 +2847,48 @@ async function saveBirthDate() {
   }
 }
 
-// 그룹 코드 복사 (설정 화면용)
-function copyGroupCode() {
-  const code = currentGroup;
-  const text = `🍯 꿀복이 성장 일기 가족 초대!\n\n가족 코드: ${code}\n앱 주소: ${window.location.origin}${window.location.pathname}\n\n위 주소 접속 → "가족 코드로 입장" → 코드 입력하면 함께 볼 수 있어요!`;
+// 앱 주소 복사
+function copyAppUrl() {
+  const url = window.location.origin + window.location.pathname;
+  const text = `🍯 꿀복이 성장 일기에 초대합니다!\n\n${url}\n\n위 주소로 접속해서 닉네임(엄마/아빠/할머니 등)만 선택하면\n바로 같은 화면을 함께 볼 수 있어요 💛`;
 
   if (navigator.clipboard) {
     navigator.clipboard.writeText(text).then(() => {
-      showToast('코드 + 안내 복사됐어요! 💌');
-      // 진동 피드백
+      showToast('앱 주소 복사됐어요! 가족에게 보내세요 💌');
       if (navigator.vibrate) navigator.vibrate(30);
     }).catch(() => fallbackCopy(text));
   } else {
     fallbackCopy(text);
+  }
+}
+
+// 앱 공유 (카카오톡/메시지)
+function shareApp() {
+  const url = window.location.origin + window.location.pathname;
+  const meta = groupData?.meta || {};
+  const babyName = meta.babyName || '꿀복이';
+  const text = `🍯 ${babyName} 성장 일기에 초대합니다!\n\n${url}\n\n위 주소로 접속해서 닉네임(엄마/아빠/할머니 등)만 선택하면 바로 함께 볼 수 있어요 💛`;
+
+  if (navigator.share) {
+    navigator.share({
+      title: `${babyName} 성장 일기`,
+      text: text,
+      url: url
+    }).catch(() => {});
+  } else {
+    fallbackCopy(text);
+    showToast('내용이 복사됐어요. 카톡에 붙여넣어 주세요');
+  }
+}
+
+// 멤버 삭제 (중복 정리용)
+async function removeMember(key, role) {
+  if (!confirm(`'${role}' 멤버를 목록에서 지울까요?\n(기록은 그대로 남아요)`)) return;
+  try {
+    await db.ref(`groups/${FIXED_GROUP}/members/${key}`).remove();
+    showToast(`'${role}' 삭제됐어요`);
+  } catch (err) {
+    showToast('삭제 실패: ' + err.message);
   }
 }
 
@@ -3094,7 +3066,7 @@ function detectNewRecords() {
 
   newMomentIds.forEach(id => {
     const m = moments[id];
-    if (!m || m.authorUid === currentUid) return;  // 내가 추가한 건 알림 안 함
+    if (!m || m.author === currentRole) return;  // 내가(같은 닉네임) 추가한 건 알림 안 함
     const emoji = m.type === 'photo' ? '📷' : m.type === 'video' ? '🎬' : '✏️';
     const typeName = m.type === 'photo' ? '사진' : m.type === 'video' ? '영상' : '메모';
     showNotificationBanner(emoji, `${m.author || '가족'}님이 ${typeName} 추가!`, m.memo || `새로운 ${typeName}을 올렸어요`);
@@ -3102,7 +3074,7 @@ function detectNewRecords() {
 
   newGrowthIds.forEach(id => {
     const g = growth[id];
-    if (!g || g.authorUid === currentUid) return;
+    if (!g || g.author === currentRole) return;
     const stats = [];
     if (g.height) stats.push(`키 ${g.height}cm`);
     if (g.weight) stats.push(`몸무게 ${g.weight}kg`);
@@ -3910,22 +3882,8 @@ function closeSettings() {
 }
 
 // ============================================================
-// 코드 복사 / 공유
+// 클립보드 폴백
 // ============================================================
-function copyCode() {
-  const code = currentGroup;
-  const text = `🍯 꿀복이 성장 일기 가족 초대 코드: ${code}\n앱: ${window.location.origin}`;
-
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => {
-      showToast('코드가 복사됐어요! 가족에게 보내세요');
-    }).catch(() => {
-      fallbackCopy(text);
-    });
-  } else {
-    fallbackCopy(text);
-  }
-}
 function fallbackCopy(text) {
   const ta = document.createElement('textarea');
   ta.value = text;
@@ -3933,40 +3891,23 @@ function fallbackCopy(text) {
   ta.select();
   document.execCommand('copy');
   document.body.removeChild(ta);
-  showToast('코드가 복사됐어요!');
-}
-function shareKakao() {
-  const code = currentGroup;
-  const text = `🍯 꿀복이 성장 일기에 초대합니다!\n\n가족 코드: ${code}\n앱 주소: ${window.location.origin}\n\n위 주소에 접속해서 "가족 코드로 입장"을 눌러 코드를 입력하면 함께 볼 수 있어요!`;
-
-  // Web Share API (모바일 카카오톡 자동 인식)
-  if (navigator.share) {
-    navigator.share({
-      title: '꿀복이 성장 일기 초대',
-      text: text
-    }).catch(() => {});
-  } else {
-    fallbackCopy(text);
-    showToast('내용이 복사됐어요. 카톡에 붙여넣어 주세요');
-  }
+  showToast('복사됐어요!');
 }
 
 // ============================================================
 // 로그아웃 / 그룹 나가기
 // ============================================================
 function logout() {
-  if (!confirm('다른 가족 그룹으로 전환할까요?\n현재 데이터는 그대로 보존됩니다.')) return;
+  if (!confirm('닉네임을 다시 선택할까요?\n기록은 그대로 보존됩니다.')) return;
 
   if (groupListener && currentGroup) {
     db.ref(`groups/${currentGroup}`).off('value', groupListener);
   }
 
-  localStorage.removeItem(LS_KEYS.GROUP);
+  // 닉네임/기기 정보만 초기화 (아기 정보·기록은 유지)
   localStorage.removeItem(LS_KEYS.UID);
   localStorage.removeItem(LS_KEYS.ROLE);
 
-  currentGroup = null;
-  currentUid = null;
   currentRole = null;
   groupData = null;
   currentTab = 'home';
@@ -3975,7 +3916,12 @@ function logout() {
   document.getElementById('app-container').style.display = 'none';
   document.getElementById('start-screen').style.display = '';
   closeSettings();
-  backToMode();
+
+  // 아기 정보는 있으니 닉네임 선택 화면으로
+  document.getElementById('create-form').style.display = 'none';
+  document.getElementById('role-form').style.display = 'block';
+  document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('role-confirm-btn').disabled = true;
   showScreen('start-screen');
 }
 
@@ -3999,39 +3945,47 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 // 앱 시작
 // ============================================================
 function init() {
-  const savedGroup = localStorage.getItem(LS_KEYS.GROUP);
   const savedUid = localStorage.getItem(LS_KEYS.UID);
   const savedRole = localStorage.getItem(LS_KEYS.ROLE);
 
-  if (savedGroup && savedUid && savedRole) {
-    // 자동 로그인
-    currentGroup = savedGroup;
-    currentUid = savedUid;
-    currentRole = savedRole;
+  // 고정 그룹의 아기 정보가 있는지 확인
+  db.ref(`groups/${FIXED_GROUP}/meta`).once('value').then(snap => {
+    const hasBaby = snap.exists();
 
-    // 그룹 존재 확인
-    db.ref(`groups/${savedGroup}/meta`).once('value').then(snap => {
-      if (snap.exists()) {
-        enterMain();
-      } else {
-        // 그룹이 삭제됨
-        localStorage.clear();
-        showScreen('start-screen');
-      }
-    }).catch(err => {
-      console.error('Auto login failed:', err);
-      showScreen('start-screen');
-    });
-  } else {
-    showScreen('start-screen');
-  }
+    if (savedUid && savedRole && hasBaby) {
+      // 이미 닉네임 선택한 기기 + 아기 정보 있음 → 자동 로그인
+      currentGroup = FIXED_GROUP;
+      currentUid = savedUid;
+      currentRole = savedRole;
+      enterMain();
+    } else if (hasBaby) {
+      // 아기 정보는 있지만 이 기기는 닉네임 미선택 → 닉네임 선택 화면
+      document.getElementById('loading-screen').style.display = 'none';
+      document.getElementById('start-screen').classList.add('active');
+      document.getElementById('create-form').style.display = 'none';
+      document.getElementById('role-form').style.display = 'block';
+    } else {
+      // 아기 정보 없음 = 가족 중 첫 사용자 → 아기 정보 입력 화면
+      document.getElementById('loading-screen').style.display = 'none';
+      document.getElementById('start-screen').classList.add('active');
+      document.getElementById('create-form').style.display = 'block';
+      document.getElementById('role-form').style.display = 'none';
+    }
+  }).catch(err => {
+    console.error('Init failed:', err);
+    // 에러 시 일단 첫 화면
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('start-screen').classList.add('active');
+    document.getElementById('create-form').style.display = 'block';
+    document.getElementById('role-form').style.display = 'none';
+  });
 }
 
 // 페이지 로드 후 시작
 window.addEventListener('DOMContentLoaded', () => {
-  // 약간의 로딩 효과 (0.5초)
   setTimeout(init, 400);
 });
+
 </script>
 </body>
 </html>
