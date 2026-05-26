@@ -1891,9 +1891,47 @@
       <button class="modal-close" onclick="closeGrowthDetailModal()">✕</button>
     </div>
     <div id="growth-detail-content"></div>
-    <button class="btn-secondary" onclick="deleteGrowth()" style="border-color:#FFC0C0;color:#C04040;margin-top:12px;">
-      🗑️ 삭제하기
-    </button>
+    <div style="display: flex; gap: 8px; margin-top: 12px;">
+      <button class="btn-secondary" onclick="openEditGrowth()" style="flex:1;border-color:var(--honey);color:var(--honey-deep);">
+        ✏️ 수정하기
+      </button>
+      <button class="btn-secondary" onclick="deleteGrowth()" style="flex:1;border-color:#FFC0C0;color:#C04040;">
+        🗑️ 삭제하기
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 성장 기록 수정 모달 -->
+<div class="modal-overlay" id="edit-growth-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ 성장 기록 수정</div>
+      <button class="modal-close" onclick="closeEditGrowthModal()">✕</button>
+    </div>
+    <div class="setup-form">
+      <div class="field">
+        <label>측정일</label>
+        <input type="date" id="edit-growth-date" />
+      </div>
+      <div class="field">
+        <label>키 (cm)</label>
+        <input type="number" id="edit-growth-height" step="0.1" min="0" max="200" placeholder="예: 50.5" />
+      </div>
+      <div class="field">
+        <label>몸무게 (kg)</label>
+        <input type="number" id="edit-growth-weight" step="0.01" min="0" max="100" placeholder="예: 3.42" />
+      </div>
+      <div class="field">
+        <label>머리둘레 (cm)</label>
+        <input type="number" id="edit-growth-head" step="0.1" min="0" max="100" placeholder="예: 34.5" />
+      </div>
+      <div class="field">
+        <label>메모</label>
+        <input type="text" id="edit-growth-memo" placeholder="예: 100일 검진" maxlength="100" />
+      </div>
+      <button class="btn-primary" id="save-edit-growth-btn" onclick="saveEditGrowth()">저장하기 🌱</button>
+    </div>
   </div>
 </div>
 
@@ -2126,11 +2164,41 @@
       </div>
     </div>
     <div id="detail-content" style="padding: 0 24px 24px;"></div>
-    <div style="padding: 0 24px 24px;">
-      <button class="btn-secondary" onclick="deleteMemory()" style="border-color:#FFC0C0;color:#C04040;">
+    <div style="padding: 0 24px 24px; display: flex; gap: 8px;">
+      <button class="btn-secondary" onclick="openEditMemory()" style="flex:1;border-color:var(--honey);color:var(--honey-deep);">
+        ✏️ 수정하기
+      </button>
+      <button class="btn-secondary" onclick="deleteMemory()" style="flex:1;border-color:#FFC0C0;color:#C04040;">
         🗑️ 삭제하기
       </button>
     </div>
+  </div>
+</div>
+
+<!-- 추억 수정 모달 -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="edit-modal-title">✏️ 추억 수정</div>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+
+    <!-- 수정 가능 영역 -->
+    <div id="edit-media-preview" style="margin-bottom:16px;"></div>
+
+    <div class="field">
+      <label>날짜</label>
+      <input type="date" id="edit-date" />
+    </div>
+    <div class="field">
+      <label>메모</label>
+      <textarea id="edit-memo" placeholder="메모를 적어주세요" maxlength="2000" rows="6"></textarea>
+    </div>
+    <div class="field">
+      <label>태그 <span style="color:var(--gray-soft);font-weight:normal;">(쉼표로 구분)</span></label>
+      <input type="text" id="edit-tags" placeholder="예: 첫웃음, 100일" maxlength="100" />
+    </div>
+    <button class="btn-primary" id="save-edit-btn" onclick="saveEditMemory()">저장하기 🍯</button>
   </div>
 </div>
 
@@ -2893,11 +2961,20 @@ function openDetail(id) {
       '</div>';
   }
 
+  // 수정 정보 표시 (수정된 경우만)
+  let updatedInfo = '';
+  if (moment.updatedAt) {
+    const upDate = new Date(moment.updatedAt);
+    const dateStr = `${upDate.getMonth()+1}월 ${upDate.getDate()}일`;
+    updatedInfo = `<span style="margin-left:8px;color:var(--gray-soft);font-size:11px;">✏️ ${dateStr} ${moment.updatedBy ? escapeHtml(moment.updatedBy) + '이' : ''} 수정</span>`;
+  }
+
   const detailContent = `
     ${mediaHtml}
     <div style="margin-bottom:12px;">
       <span class="memory-day-badge">${dayBadge}</span>
       <span style="margin-left:8px;color:var(--brown-soft);font-size:13px;">by ${escapeHtml(moment.author || '?')}</span>
+      ${updatedInfo}
     </div>
     ${moment.memo ? `<div class="memo-full" style="font-size:16px;color:var(--brown);margin-bottom:8px;background:var(--butter);padding:14px 18px;border-radius:14px;">${escapeHtml(moment.memo)}</div>` : ''}
     ${tagsHtml}
@@ -2922,6 +2999,159 @@ async function deleteMemory() {
     closeDetailModal();
   } catch (err) {
     showToast('삭제 실패: ' + err.message);
+  }
+}
+
+// ============================================================
+// ====================  추억 수정  =============================
+// ============================================================
+function openEditMemory() {
+  if (!currentDetailId) return;
+  const moment = groupData?.moments?.[currentDetailId];
+  if (!moment) return;
+
+  // 모달 제목 (타입별)
+  const typeName = moment.type === 'photo' ? '사진' : moment.type === 'video' ? '영상' : '메모';
+  document.getElementById('edit-modal-title').textContent = `✏️ ${typeName} 수정`;
+
+  // 미디어 미리보기 (수정 불가, 보여만 줌)
+  const previewArea = document.getElementById('edit-media-preview');
+  if (moment.type === 'photo' && moment.url) {
+    previewArea.innerHTML = `
+      <img src="${escapeHtml(moment.url)}" style="width:100%;border-radius:14px;display:block;" />
+      <p style="text-align:center;font-size:11px;color:var(--brown-soft);margin-top:6px;">
+        💡 사진 파일은 바꿀 수 없어요. 새로 만드시려면 삭제 후 다시 추가해주세요
+      </p>
+    `;
+  } else if (moment.type === 'video' && moment.thumbnail) {
+    previewArea.innerHTML = `
+      <div style="position:relative;border-radius:14px;overflow:hidden;">
+        <img src="${escapeHtml(moment.thumbnail)}" style="width:100%;display:block;" />
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:54px;height:54px;background:rgba(255,255,255,0.95);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--honey-deep);">▶</div>
+      </div>
+      <p style="text-align:center;font-size:11px;color:var(--brown-soft);margin-top:6px;">
+        💡 영상 URL은 바꿀 수 없어요. 새로 만드시려면 삭제 후 다시 추가해주세요
+      </p>
+    `;
+  } else {
+    previewArea.innerHTML = '';
+  }
+
+  // 기존 값 채우기
+  document.getElementById('edit-date').value = moment.date || '';
+  document.getElementById('edit-memo').value = moment.memo || '';
+  document.getElementById('edit-tags').value = (moment.tags || []).join(', ');
+
+  // 상세 모달 닫고 수정 모달 열기
+  document.getElementById('detail-modal').classList.remove('active');
+  document.getElementById('edit-modal').classList.add('active');
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('active');
+}
+
+async function saveEditMemory() {
+  if (!currentDetailId) return;
+
+  const date = document.getElementById('edit-date').value;
+  const memo = document.getElementById('edit-memo').value.trim();
+  const tagsInput = document.getElementById('edit-tags').value.trim();
+  const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+  if (!date) { showToast('날짜를 선택해주세요'); return; }
+
+  const btn = document.getElementById('save-edit-btn');
+  btn.disabled = true;
+  btn.textContent = '저장 중...';
+
+  try {
+    // 변경 가능한 필드만 업데이트 (url/type/thumbnail/author는 보존)
+    const updates = {
+      date: date,
+      memo: memo,
+      tags: tags,
+      updatedAt: Date.now(),
+      updatedBy: currentRole
+    };
+    await db.ref(`groups/${currentGroup}/moments/${currentDetailId}`).update(updates);
+
+    showToast('수정됐어요! ✨');
+    closeEditModal();
+    currentDetailId = null;
+  } catch (err) {
+    console.error('Edit error:', err);
+    showToast('수정 실패: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '저장하기 🍯';
+  }
+}
+
+// ============================================================
+// ====================  성장 기록 수정  ========================
+// ============================================================
+function openEditGrowth() {
+  if (!currentGrowthDetailId) return;
+  const g = groupData?.growth?.[currentGrowthDetailId];
+  if (!g) return;
+
+  document.getElementById('edit-growth-date').value = g.date || '';
+  document.getElementById('edit-growth-height').value = g.height || '';
+  document.getElementById('edit-growth-weight').value = g.weight || '';
+  document.getElementById('edit-growth-head').value = g.head || '';
+  document.getElementById('edit-growth-memo').value = g.memo || '';
+
+  // 성장 상세 모달 닫고 수정 모달 열기
+  document.getElementById('growth-detail-modal').classList.remove('active');
+  document.getElementById('edit-growth-modal').classList.add('active');
+}
+
+function closeEditGrowthModal() {
+  document.getElementById('edit-growth-modal').classList.remove('active');
+}
+
+async function saveEditGrowth() {
+  if (!currentGrowthDetailId) return;
+
+  const date = document.getElementById('edit-growth-date').value;
+  const height = parseFloat(document.getElementById('edit-growth-height').value) || null;
+  const weight = parseFloat(document.getElementById('edit-growth-weight').value) || null;
+  const head = parseFloat(document.getElementById('edit-growth-head').value) || null;
+  const memo = document.getElementById('edit-growth-memo').value.trim();
+
+  if (!date) { showToast('측정일을 선택해주세요'); return; }
+  if (!height && !weight && !head) {
+    showToast('키/몸무게/머리둘레 중 하나는 입력해주세요');
+    return;
+  }
+
+  const btn = document.getElementById('save-edit-growth-btn');
+  btn.disabled = true;
+  btn.textContent = '저장 중...';
+
+  try {
+    // null인 항목은 DB에서 삭제 (update에 null 넣으면 그 키가 제거됨)
+    const updates = {
+      date: date,
+      height: height,
+      weight: weight,
+      head: head,
+      memo: memo,
+      updatedAt: Date.now(),
+      updatedBy: currentRole
+    };
+    await db.ref(`groups/${currentGroup}/growth/${currentGrowthDetailId}`).update(updates);
+
+    showToast('수정됐어요! ✨');
+    closeEditGrowthModal();
+    currentGrowthDetailId = null;
+  } catch (err) {
+    console.error('Edit growth error:', err);
+    showToast('수정 실패: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '저장하기 🌱';
   }
 }
 
@@ -3657,7 +3887,12 @@ function openGrowthDetail(id) {
   if (g.memo) {
     html += `<div style="background:var(--butter);padding:12px 16px;border-radius:14px;color:var(--brown);font-size:14px;margin-bottom:12px;">${escapeHtml(g.memo)}</div>`;
   }
-  html += `<div style="font-size:12px;color:var(--gray-soft);text-align:right;">기록 by ${escapeHtml(g.author || '?')}</div>`;
+  html += `<div style="font-size:12px;color:var(--gray-soft);text-align:right;">기록 by ${escapeHtml(g.author || '?')}`;
+  if (g.updatedAt) {
+    const upDate = new Date(g.updatedAt);
+    html += ` · ✏️ ${upDate.getMonth()+1}/${upDate.getDate()} ${g.updatedBy ? escapeHtml(g.updatedBy) + '이' : ''} 수정`;
+  }
+  html += `</div>`;
 
   document.getElementById('growth-detail-content').innerHTML = html;
   document.getElementById('growth-detail-modal').classList.add('active');
